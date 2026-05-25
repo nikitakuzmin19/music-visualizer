@@ -2,8 +2,9 @@ import numpy as np
 import subprocess
 import json
 
-# Main methods
 def decode_to_pcm(file):
+    # use ffmpeg to convert whatever audio format to raw mono f32 at 44100 Hz
+    # piping to stdout avoids writing a temp file
     cmd = [
         "ffmpeg",
         "-i", file,
@@ -13,12 +14,10 @@ def decode_to_pcm(file):
         "-"
     ]
 
-    process = subprocess.Popen(cmd, stdout=subprocess.PIPE)
+    process = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.DEVNULL)
     audio_bytes = process.stdout.read()
 
-    audio = np.frombuffer(audio_bytes, dtype=np.float32)
-
-    return audio
+    return np.frombuffer(audio_bytes, dtype=np.float32)
 
 
 def get_metadata(file):

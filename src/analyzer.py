@@ -23,7 +23,6 @@ def analyze_track(pcm: np.ndarray, sr: int = 44100) -> dict:
     # to not get any loud bumps at the beginning or end of each frame that is procesed
     window = np.hanning(n_fft)
 
-    # 
     spectrum = np.zeros((n_frames, NUM_BARS))
 
     # loop though frames
@@ -41,6 +40,8 @@ def analyze_track(pcm: np.ndarray, sr: int = 44100) -> dict:
         # that gives amplitude for each frequency bin in this frame.
         spec = np.abs(np.fft.rfft(frame))
 
+        # linear split — bass bars get way more energy than treble ones,
+        # so the first ~1/3 of bars move a lot more. that's just how music energy is distributed currently
         bins_per_bar = len(spec) // NUM_BARS
 
         for b in range(NUM_BARS):
@@ -54,8 +55,7 @@ def analyze_track(pcm: np.ndarray, sr: int = 44100) -> dict:
         treble[i] = np.sum(spec[(freqs >= TREBLE[0]) & (freqs < min(TREBLE[1], nyquist))])
 
         
-    # Each band (bass, mid, treble) is normalized by making the largest value become 1 and all other values are scaled accordingly, 
-    # so it kind of nests the loudness within each band, like Matryoshka dolls, proportional to their own peaks.
+    # normalize to [0, 1] so the visualizer doesn't need to care about absolute amplitudes
     peak = np.max(spectrum)
     if peak > 0:
         spectrum /= peak
@@ -79,24 +79,11 @@ def analyze_track(pcm: np.ndarray, sr: int = 44100) -> dict:
     }
 
 
-# return the index of the frame whose time is closest to t without exceeding it.
 def get_frame_index_for_time(t: float, times: np.ndarray) -> int:
-
-    # searchsorted returns the index where t should be inserted to maintain order
+    # floor search — gives us the last frame that started at or before t
     idx = np.searchsorted(times, t, side="right") - 1
-    
-    if idx < 0:
-        idx = 0
-    return idx
+    return max(0, idx)
 
 
-# check if any beat falls within window seconds of t
 def is_beat_near(t: float, beats: np.ndarray, window: float) -> bool:
-    """
-    t (float) - time (in seconds) to check around.
-    beats (np array) - array of beat times (in seconds).
-    window (float) - time window (in seconds) within which to check for a nearby beat.
-
-    Returns True if there is at least one beat within [t - window, t + window]
-    """
     return np.any(np.abs(beats - t) <= window)

@@ -1,9 +1,4 @@
 #!/usr/bin/env python3
-# gpt generated to understand better whats happening here
-"""
-Visualize the analyzer output: bass, mid, treble over time, plus beat markers.
-Run from src/: python visualize_analysis.py
-"""
 import matplotlib.pyplot as plt
 
 from utils import decode_to_pcm
