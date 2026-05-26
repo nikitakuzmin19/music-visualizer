@@ -20,11 +20,12 @@ def _lerp(a, b, t):
     return tuple(int(a[j] + (b[j] - a[j]) * t) for j in range(3))
 
 def bar_color(i):
-    # red (bass) -> green (mid) -> blue (treble)
-    t = i / (NUM_BARS - 1)
+    # blue (treble) -> green (mid) -> red (bass) -> green (mid) -> blue (treble)
+    half = NUM_BARS // 2
+    t = i / (half - 1) if i < half else (NUM_BARS - 1 - i) / (half - 1)
     if t < 0.5:
-        return _lerp((255, 60, 30), (50, 210, 80), t * 2)
-    return _lerp((50, 210, 80), (30, 140, 255), (t - 0.5) * 2)
+        return _lerp((30, 140, 255), (50, 210, 80), t * 2)
+    return _lerp((50, 210, 80), (255, 60, 30), (t - 0.5) * 2)
 
 
 def run(file_path: str):
@@ -99,9 +100,11 @@ def run(file_path: str):
         frame_idx = get_frame_index_for_time(t, times)
         frame = spectrum[frame_idx]
 
+        half = NUM_BARS // 2
         for i, bar in enumerate(bars):
+            freq_idx = (half - 1 - i) if i < half else (i - half)
             prev_height = getattr(bar, "prev_height", bar.height)
-            target = 20 + frame[i] * 400
+            target = 20 + frame[freq_idx] * 400
             # ease toward target — avoids the bars snapping too hard between frames
             bar.height = prev_height * 0.7 + target * 0.3
             bar.prev_height = bar.height

@@ -1,9 +1,11 @@
 from utils import decode_to_pcm, get_metadata
 from analyzer import analyze_track
 from visualizer import run as run_visualizer
-import os.path
+import os
+import sys
 
-FILE = "/home/nikita/dev/personal/sandbox/music-visualizer/src/audio_samples/Deftones_My_Own_Summer.wav"
+_SAMPLE = os.path.join(os.path.dirname(__file__), "audio_samples", "Deftones_My_Own_Summer.wav")
+FILE = _SAMPLE
 
 def main():
     if os.path.exists(FILE):
